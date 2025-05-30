@@ -115,13 +115,14 @@ export default {
 
     if (url.pathname === "/check-open-ai-key") {
       const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
+      const hasGatewayUrl = !!env.GATEWAY_BASE_URL;
       return Response.json({
-        success: hasOpenAIKey,
+        success: hasOpenAIKey || hasGatewayUrl,
       });
     }
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.OPENAI_API_KEY && !env.GATEWAY_BASE_URL) {
       console.error(
-        "OPENAI_API_KEY is not set, don't forget to set it locally in .dev.vars, and use `wrangler secret bulk .dev.vars` to upload it to production"
+        "Neither OPENAI_API_KEY nor GATEWAY_BASE_URL is set. Please set at least one of them locally in .dev.vars, and use `wrangler secret bulk .dev.vars` to upload it to production"
       );
     }
     return (
