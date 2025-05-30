@@ -3,6 +3,8 @@
 // Runtime types generated with workerd@1.20250507.0 2025-05-07 nodejs_compat,nodejs_compat_populate_process_env
 declare namespace Cloudflare {
 	interface Env {
+    GATEWAY_BASE_URL: any;
+    AI: Ai<AiModels>;
 		OPENAI_API_KEY: string;
 		Chat: DurableObjectNamespace<import("./src/server").Chat>;
 	}
