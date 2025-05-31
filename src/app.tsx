@@ -24,6 +24,9 @@ import {
   Stop,
 } from "@phosphor-icons/react";
 
+// Format markdown
+import { addMarkdownNewlines } from "./format-markdown";
+
 // List of tools that require human confirmation
 const toolsRequiringConfirmation: (keyof typeof tools)[] = [
   "getWeatherInformation",
@@ -329,9 +332,11 @@ export default function Chat() {
                                   )}
                                   <MemoizedMarkdown
                                     id={`${m.id}-${i}`}
-                                    content={part.text.replace(
-                                      /^scheduled message: /,
-                                      ""
+                                    content={addMarkdownNewlines(
+                                      part.text.replace(
+                                        /^scheduled message: /,
+                                        ""
+                                      )
                                     )}
                                   />
                                 </Card>

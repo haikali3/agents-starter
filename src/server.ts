@@ -15,6 +15,7 @@ import { createWorkersAI } from 'workers-ai-provider';
 import { processToolCalls } from "./utils";
 import { tools, executions } from "./tools";
 import { env } from "cloudflare:workers";
+import systemPrompt from "./system-prompt";
 
 const workersai = createWorkersAI({ 
   binding: env.AI,
@@ -72,12 +73,11 @@ export class Chat extends AIChatAgent<Env> {
         // Stream the AI response using GPT-4
         const result = streamText({
           model,
-          system: `You are a helpful assistant that can do various tasks... 
+          system: `${systemPrompt}
 
 ${unstable_getSchedulePrompt({ date: new Date() })}
 
-If the user asks to schedule a task, use the schedule tool to schedule the task.
-`,
+If the user asks to schedule a task, use the schedule tool to schedule the task.`,
           messages: processedMessages,
           tools: allTools,
           onFinish: async (args) => {
