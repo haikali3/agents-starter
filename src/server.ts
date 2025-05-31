@@ -16,7 +16,13 @@ import { processToolCalls } from "./utils";
 import { tools, executions } from "./tools";
 import { env } from "cloudflare:workers";
 
-const workersai = createWorkersAI({ binding: env.AI });
+const workersai = createWorkersAI({ 
+  binding: env.AI,
+  gateway: {
+    id: 'chatbot-ai',
+    collectLog: true
+  }
+});
 
 // const model = openai("gpt-4o-2024-11-20");
 // const model = workersai("@cf/deepseek-ai/deepseek-r1-distill-qwen-32b");
