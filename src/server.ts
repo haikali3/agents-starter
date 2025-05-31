@@ -15,8 +15,15 @@ import { createWorkersAI } from 'workers-ai-provider';
 import { processToolCalls } from "./utils";
 import { tools, executions } from "./tools";
 import { env } from "cloudflare:workers";
+import systemPrompt from "./system-prompt";
 
-const workersai = createWorkersAI({ binding: env.AI });
+const workersai = createWorkersAI({ 
+  binding: env.AI,
+  gateway: {
+    id: 'chatbot-ai',
+    collectLog: true
+  }
+});
 
 // const model = openai("gpt-4o-2024-11-20");
 // const model = workersai("@cf/deepseek-ai/deepseek-r1-distill-qwen-32b");
@@ -66,12 +73,11 @@ export class Chat extends AIChatAgent<Env> {
         // Stream the AI response using GPT-4
         const result = streamText({
           model,
-          system: `You are a helpful assistant that can do various tasks... 
+          system: `${systemPrompt}
 
 ${unstable_getSchedulePrompt({ date: new Date() })}
 
-If the user asks to schedule a task, use the schedule tool to schedule the task.
-`,
+If the user asks to schedule a task, use the schedule tool to schedule the task.`,
           messages: processedMessages,
           tools: allTools,
           onFinish: async (args) => {
@@ -83,7 +89,7 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
           onError: (error) => {
             console.error("Error while streaming:", error);
           },
-          maxSteps: 10,
+          maxSteps: 10
         });
 
         // Merge the AI response stream with tool execution outputs

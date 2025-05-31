@@ -24,10 +24,98 @@ import {
   Stop,
 } from "@phosphor-icons/react";
 
+// Format markdown
+import { addMarkdownNewlines } from "./format-markdown";
+
 // List of tools that require human confirmation
 const toolsRequiringConfirmation: (keyof typeof tools)[] = [
   "getWeatherInformation",
 ];
+
+function HasOpenAIKey() {
+  const [hasGatewayUrl, setHasGatewayUrl] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetch("/check-open-ai-key")
+      .then((res) => res.json<{ success: boolean }>())
+      .then((data) => setHasGatewayUrl(data.success))
+      .catch((error) => {
+        console.error("Error checking gateway URL:", error);
+        setHasGatewayUrl(false);
+      });
+  }, []);
+
+  if (hasGatewayUrl === null) {
+    return null; // Loading state
+  }
+
+  if (!hasGatewayUrl) {
+    return (
+      <div className="fixed top-0 left-0 right-0 z-50 bg-red-500/10 backdrop-blur-sm">
+        <div className="max-w-3xl mx-auto p-4">
+          <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg border border-red-200 dark:border-red-900 p-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <svg
+                  className="w-5 h-5 text-red-600 dark:text-red-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-labelledby="warningIcon"
+                >
+                  <title id="warningIcon">Warning Icon</title>
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">
+                  AI Gateway URL Not Configured
+                </h3>
+                <p className="text-neutral-600 dark:text-neutral-300 mb-1">
+                  Requests to the API, including from the frontend UI, will not
+                  work until a Gateway URL is configured.
+                </p>
+                <p className="text-neutral-600 dark:text-neutral-300">
+                  Please configure a Gateway URL by setting a{" "}
+                  <a
+                    href="https://developers.cloudflare.com/workers/configuration/secrets/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-red-600 dark:text-red-400"
+                  >
+                    secret
+                  </a>{" "}
+                  named{" "}
+                  <code className="bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 rounded text-red-600 dark:text-red-400 font-mono text-sm">
+                    GATEWAY_BASE_URL
+                  </code>
+                  . <br />
+                  You can also use Cloudflare Workers AI directly by following
+                  these{" "}
+                  <a
+                    href="https://github.com/cloudflare/agents-starter?tab=readme-ov-file#use-a-different-ai-model-provider"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-red-600 dark:text-red-400"
+                  >
+                    instructions.
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
 
 export default function Chat() {
   const [theme, setTheme] = useState<"dark" | "light">(() => {
@@ -104,91 +192,6 @@ export default function Chat() {
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
-
-  function HasOpenAIKey() {
-    const [hasGatewayUrl, setHasGatewayUrl] = useState<boolean | null>(null);
-
-    useEffect(() => {
-      fetch("/check-open-ai-key")
-        .then((res) => res.json<{ success: boolean }>())
-        .then((data) => setHasGatewayUrl(data.success))
-        .catch((error) => {
-          console.error("Error checking gateway URL:", error);
-          setHasGatewayUrl(false);
-        });
-    }, []);
-
-    if (hasGatewayUrl === null) {
-      return null; // Loading state
-    }
-
-    if (!hasGatewayUrl) {
-      return (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-red-500/10 backdrop-blur-sm">
-          <div className="max-w-3xl mx-auto p-4">
-            <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg border border-red-200 dark:border-red-900 p-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-                  <svg
-                    className="w-5 h-5 text-red-600 dark:text-red-400"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-labelledby="warningIcon"
-                  >
-                    <title id="warningIcon">Warning Icon</title>
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">
-                    AI Gateway URL Not Configured
-                  </h3>
-                  <p className="text-neutral-600 dark:text-neutral-300 mb-1">
-                    Requests to the API, including from the frontend UI, will
-                    not work until a Gateway URL is configured.
-                  </p>
-                  <p className="text-neutral-600 dark:text-neutral-300">
-                    Please configure a Gateway URL by setting a{" "}
-                    <a
-                      href="https://developers.cloudflare.com/workers/configuration/secrets/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-red-600 dark:text-red-400"
-                    >
-                      secret
-                    </a>{" "}
-                    named{" "}
-                    <code className="bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 rounded text-red-600 dark:text-red-400 font-mono text-sm">
-                      GATEWAY_BASE_URL
-                    </code>
-                    . <br />
-                    You can also use Cloudflare Workers AI directly by following
-                    these{" "}
-                    <a
-                      href="https://github.com/cloudflare/agents-starter?tab=readme-ov-file#use-a-different-ai-model-provider"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-red-600 dark:text-red-400"
-                    >
-                      instructions.
-                    </a>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  }
 
   return (
     <div className="h-[100vh] w-full p-4 flex justify-center items-center bg-fixed overflow-hidden">
@@ -306,6 +309,8 @@ export default function Chat() {
                       <div>
                         {m.parts?.map((part, i) => {
                           if (part.type === "text") {
+                            const isStreaming =
+                              isLoading && index === agentMessages.length - 1;
                             return (
                               // biome-ignore lint/suspicious/noArrayIndexKey: immutable index
                               <div key={i}>
@@ -327,13 +332,24 @@ export default function Chat() {
                                       🕒
                                     </span>
                                   )}
-                                  <MemoizedMarkdown
-                                    id={`${m.id}-${i}`}
-                                    content={part.text.replace(
-                                      /^scheduled message: /,
-                                      ""
-                                    )}
-                                  />
+                                  <div
+                                    className={`markdown-body ${isStreaming ? "animate-pulse" : ""}`}
+                                  >
+                                    <MemoizedMarkdown
+                                      id={`${m.id}-${i}`}
+                                      content={addMarkdownNewlines(
+                                        part.text.replace(
+                                          /^scheduled message: /,
+                                          ""
+                                        )
+                                      )}
+                                    />
+                                  </div>
+                                  {isStreaming && (
+                                    <div className="absolute bottom-2 right-2">
+                                      <div className="h-2 w-2 rounded-full bg-neutral-400 animate-pulse" />
+                                    </div>
+                                  )}
                                 </Card>
                                 <p
                                   className={`text-xs text-muted-foreground mt-1 ${
