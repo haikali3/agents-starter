@@ -309,6 +309,8 @@ export default function Chat() {
                       <div>
                         {m.parts?.map((part, i) => {
                           if (part.type === "text") {
+                            const isStreaming =
+                              isLoading && index === agentMessages.length - 1;
                             return (
                               // biome-ignore lint/suspicious/noArrayIndexKey: immutable index
                               <div key={i}>
@@ -330,15 +332,24 @@ export default function Chat() {
                                       🕒
                                     </span>
                                   )}
-                                  <MemoizedMarkdown
-                                    id={`${m.id}-${i}`}
-                                    content={addMarkdownNewlines(
-                                      part.text.replace(
-                                        /^scheduled message: /,
-                                        ""
-                                      )
-                                    )}
-                                  />
+                                  <div
+                                    className={`markdown-body ${isStreaming ? "animate-pulse" : ""}`}
+                                  >
+                                    <MemoizedMarkdown
+                                      id={`${m.id}-${i}`}
+                                      content={addMarkdownNewlines(
+                                        part.text.replace(
+                                          /^scheduled message: /,
+                                          ""
+                                        )
+                                      )}
+                                    />
+                                  </div>
+                                  {isStreaming && (
+                                    <div className="absolute bottom-2 right-2">
+                                      <div className="h-2 w-2 rounded-full bg-neutral-400 animate-pulse" />
+                                    </div>
+                                  )}
                                 </Card>
                                 <p
                                   className={`text-xs text-muted-foreground mt-1 ${

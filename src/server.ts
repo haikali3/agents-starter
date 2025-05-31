@@ -89,7 +89,7 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
           onError: (error) => {
             console.error("Error while streaming:", error);
           },
-          maxSteps: 10,
+          maxSteps: 10
         });
 
         // Merge the AI response stream with tool execution outputs
